@@ -91,4 +91,4 @@ def main2():
     ioloop.close()
     return 'Finished main №2'
 
-print(main())
+print(main2())
