@@ -9,8 +9,8 @@ import json
 import datetime
 from fake_useragent import UserAgent
 
-FUA = UserAgent().chrome
-headers = {'User-Agent':FUA}
+# FUA = UserAgent().chrome
+# headers = {'User-Agent': FUA}
 
 
 def test():
@@ -21,9 +21,9 @@ def test():
 
 async def gt1():
     sec = 3
-    print('I will started GT1 {} seconds : {}'.format(test(),sec))
+    print('I will started GT1 {} seconds : {}'.format(test(), sec))
     await asyncio.sleep(sec)
-    print('Connections {} seconds : {}'.format(test(),sec))
+    print('Connections {} seconds : {}'.format(test(), sec))
 
 
 async def gt2():
@@ -42,8 +42,8 @@ async def gt3():
 URL = 'https://api.ipify.org/'
 
 
-def ip_cheaker(URL,FUA):
-    cheak_ip = requests.get(URL+'?format=json', headers={'User-Agent': FUA})
+def ip_cheaker(URL):
+    cheak_ip = requests.get(URL+'?format=json')
     # for key, value in cheak_ip.request.headers.items():
     #     j = print(key+':'+value)
     return cheak_ip
@@ -51,19 +51,21 @@ def ip_cheaker(URL,FUA):
 
 async def jsoner(to_json):
     print('Accepted files to json format')
-    await asyncio.sleep(2)
+    await asyncio.sleep(5)
     json_finish = to_json.json()
     print(f'Accepted json.files : {json_finish}' )
 
 
 async def synchrone():
-    to_json = ip_cheaker(URL=URL,FUA=FUA)
+    await asyncio.sleep(2)
+    print('Get ip cheaker')
+    to_json = ip_cheaker(URL=URL)
     print(f'Connection look {to_json}/ time start to connect : {test()}')
-    await asyncio.sleep(1)
+    await asyncio.sleep(3)
+    print('Go to TASK')
     tasks = [asyncio.ensure_future(jsoner(to_json=to_json))]
     await asyncio.wait(tasks)
     print(f'Ended connection {test()}')
-
 
 
 def main():
@@ -80,6 +82,7 @@ def main():
 
 
 def main2():
+    time.sleep(2)
     ioloop = asyncio.get_event_loop()
     tasks = [
         ioloop.create_task(gt1()),
@@ -91,4 +94,4 @@ def main2():
     ioloop.close()
     return 'Finished main №2'
 
-print(main2())
+print(main())
