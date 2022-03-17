@@ -14,7 +14,8 @@ async def price_game(oldprice, price, discount, site_url):
         await asyncio.wait(task)
         return print(f"Old price: -, Discount: -%, Price: {price_list[0]}\n{site_url}")
     elif price == []:
-        return print("""This game is not in the store,
+        return print("""
+This game is not in the store,
 It will go on sale soon
 Or enter the name of the game like this: 
 Elden Ring, Fallout New Vegas, Rising Storm 2 Vietnam
