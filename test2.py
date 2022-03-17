@@ -12,22 +12,37 @@ async def price_game(oldprice, price, discount, site_url):
     if oldprice and discount == []:
         task = [asyncio.ensure_future(find(obj=price[-1], to_append=price_list))]
         await asyncio.wait(task)
-        return print(f"Old price: -, Discount: -%, Price: {price_list[0]}\n{site_url}")
+        return f"Old price: -, Discount: -%, Price: {price_list[0]}\n{site_url}"
     elif price == []:
-        return print("""
+        return """
 This game is not in the store,
 It will go on sale soon
 Or enter the name of the game like this: 
 Elden Ring, Fallout New Vegas, Rising Storm 2 Vietnam
-                """)
+                """
     else:
         tasks = [
             asyncio.ensure_future(find(obj=oldprice[-1], to_append=price_list)),
             asyncio.ensure_future(find(obj=price[-1], to_append=price_list)),
             asyncio.ensure_future(find(obj=discount[-1], to_append=price_list))
         ]
-        await asyncio.wait(tasks)
-        return print(f"Old price: {price_list[0]}, Discount: {price_list[2]}%, Price: {price_list[1]}\n{site_url}")
+        print(await asyncio.wait(tasks))
+        return f"Old price: {price_list[0]}, Discount: {price_list[2]}%, Price: {price_list[1]}\n{site_url}"
+
+
+# def finall(list,site_url):
+#     if len(list) == 1:
+#         return f"Old price: -, Discount: -%, Price: {list[0]}\n{site_url}"
+#     elif list == []:
+#         return """
+# This game is not in the store,
+# It will go on sale soon
+# Or enter the name of the game like this:
+# Elden Ring, Fallout New Vegas, Rising Storm 2 Vietnam
+#                 """
+#     else:
+#         None
+
 
 
 async def find(obj, to_append):
@@ -66,8 +81,12 @@ class Game:
                 old_price = soup.find_all('div', class_='old-price')
                 price_now = soup.find_all('div', class_='price')
                 discount = soup.find_all('div', class_='discount')
-                tasks = [asyncio.ensure_future(price_game(oldprice=old_price, price=price_now, discount=discount, site_url=zaka))]
-                return await asyncio.wait(tasks)
+                # future =  [asyncio.ensure_future(price_game(oldprice=old_price, price=price_now, discount=discount, site_url=zaka))]
+                # return await asyncio.wait(future) # - В таком случае мы получаем данные корутины, а не ее значения
+                # ({<Task finished name='Task-2' coro=<price_game() done, defined at C:/Users/user/AioAsync/test2.py:10> result='Old price: -...me/elden-ring'>}, set())
+                tasks = asyncio.create_task(price_game(oldprice=old_price, price=price_now, discount=discount, site_url=zaka))
+                res = await asyncio.gather(tasks)
+                return res[0] # В данном случае получаем фильтрованные данные
             except IndexError:
                 return """ 
                     Enter the name of the game like this:\n
@@ -83,11 +102,14 @@ class Game:
 
 async def main(text):
     gm = Game(text=text)
-    await gm.is_valid()
+    return await gm.is_valid()
+
+
 
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(main('Elden Ring')) # Elden Ring, Rising Storm 2 Vietnam, Fallot 3, Fallout New Vegas
+    tasks = main('Elden Ring')
+    print(loop.run_until_complete(tasks)) # Elden Ring, Rising Storm 2 Vietnam, Fallot 3, Fallout New Vegas
     loop.close()
 """
 
