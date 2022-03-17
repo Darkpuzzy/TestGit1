@@ -53,10 +53,10 @@ async def jsoner(to_json):
     print('Accepted files to json format')
     await asyncio.sleep(5)
     json_finish = to_json.json()
-    print(f'Accepted json.files : {json_finish}' )
+    return print(f'Accepted json.files : {json_finish}')
 
 
-async def synchrone():
+async def asynchrone():
     await asyncio.sleep(2)
     print('Get ip cheaker')
     to_json = ip_cheaker(URL=URL)
@@ -68,10 +68,12 @@ async def synchrone():
     print(f'Ended connection {test()}')
 
 
+
+
 def main():
     ioloop = asyncio.get_event_loop()
     task = [
-        ioloop.create_task(synchrone())
+        ioloop.create_task(asynchrone())
     ]
     wait_tasks = asyncio.wait(task)
     ioloop.run_until_complete(wait_tasks)
