@@ -33,27 +33,6 @@ Elden Ring, Fallout New Vegas, Rising Storm 2 Vietnam
         return f"Old price: {price_list[0]}, Discount: {price_list[2]}%, Price: {price_list[1]}\n{site_url}"
 
 
-# def finall(list,site_url):
-#     if len(list) == 1:
-#         return f"Old price: -, Discount: -%, Price: {list[0]}\n{site_url}"
-#     elif list == []:
-#         return """
-# This game is not in the store,
-# It will go on sale soon
-# Or enter the name of the game like this:
-# Elden Ring, Fallout New Vegas, Rising Storm 2 Vietnam
-#                 """
-#     else:
-#         None
-#
-#
-# async def testws():
-#     print('Your WS')
-#     url = "wss://zaka-zaka.com/game/rising-storm-2-vietnam"
-#     url_1 = 'wss://'
-#     async with websockets.connect(url_1) as client:
-#         print(await client.recv())
-
 async def links(name, tree):
 
     list_links = []
