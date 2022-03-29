@@ -6,6 +6,8 @@ import websockets
 import requests
 from lxml import etree
 from urllib.request import urlopen
+import re
+
 
 """ 
  Задача: 1. Валидатор для текста enter и сравнения game_name Rising_Storm_2
@@ -31,8 +33,8 @@ async def validlink(name):
 
 FUA = UserAgent().chrome
 
-enter = 'Elden Ring'
-steam = f'https://store.steampowered.com/search/?term=Elden+Ring' # Rising+Storm+2 #hitman+2
+enter = 'Rising Storm 2 Vietnam'
+steam = f'https://store.steampowered.com/search/?term=Rising+Storm+2' # Rising+Storm+2 #hitman+2 Disco_Elysium__The_Final_Cut Disco+Elysium+The+Final+Cut
 HTMLPARCE = etree.HTMLParser()
 req_link = requests.get(steam, headers={'User-Agent': FUA})
 codetxt = req_link.text
@@ -105,8 +107,9 @@ async def spliter(list_cheak, game_name):
 async def linkers(id, list_game):
     for j in list_game:
         if id in j:
+            print(j)
             return j
-
+""" <div class="discount_final_price">253 pуб.</div> <div class="discount_original_price">725 pуб.</div>  """
 
 """ PARSE PRICE """
 
@@ -123,10 +126,40 @@ async def answer():
     return html_link
 
 
+async def parse():
+    steam1 = f'{await answer()}'
+    HTMLPARCE1 = etree.HTMLParser()
+    req_link1 = requests.get(steam1, headers={'User-Agent': FUA})
+    codetxt1 = req_link1.text
+    with open('SteamHTMLparse', 'w', encoding='utf-8') as f1:
+        f1.write(codetxt1)
+    local1 = 'file:///C:/Users/user/AioAsync/SteamHTMLparse'
+    respones1 = urlopen(local1)
+    tree1 = etree.parse(respones1, HTMLPARCE1)
+    j1 = tree1.xpath(f"//div[@class='game_purchase_price price']")
+    j2 = tree1.xpath(f"//div[@class='discount_final_price']")
+    j3 = tree1.xpath(f"//div[@class='discount_block game_purchase_discount']")
+    list_test = []
+    if len(j3) > 0:
+        for i in j2:
+            priceascii = i.text
+            p1 = re.search("\d[0-9]\d", str(priceascii))
+            list_test.append(p1.group())
+            # print('J2')
+    else:
+        for i in j1:
+            priceascii = i.text
+            p1 = re.search("\d[0-9]\d", str(priceascii))
+            list_test.append(p1.group())
+            # print('J1')
+    return list_test
+
+
+
 if __name__ == '__main__':
     txt_input = 'Elden Ring'
     loop = asyncio.get_event_loop()
-    tasks = loop.create_task(answer())
+    tasks = loop.create_task(parse())
     res = asyncio.gather(tasks)
     print(loop.run_until_complete(res)[0])
     # print(loop.run_until_complete(wait_tasks)) # Elden Ring, Rising Storm 2 Vietnam, Fallout 3, Fallout New Vegas
@@ -139,7 +172,7 @@ if __name__ == '__main__':
     #print(el)
     #print(dir(el))
 #GameName = i.findAll('a', class_ = 'search_result_row ds_collapse_flag')
-# <meta itemprop="price" content="1199">
+# <meta itemprop="price" content="1199"> ||||||| price = priceascii.encode('utf-8')
 """ data-price-final="33100">
 <div class="discount_pct">-80%</div>
 <div class="discount_prices">
