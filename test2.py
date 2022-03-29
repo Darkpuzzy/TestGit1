@@ -2,13 +2,20 @@ from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
 import asyncio
 import aiohttp
-# import websockets
-import requests
 from lxml import etree
 from urllib.request import urlopen
+import datetime
 
 FUA = UserAgent().chrome
 HTMLPARCE = etree.HTMLParser()
+URL_ZAKA = 'https://zaka-zaka.com/game/'
+URL_STEAM = 'https://store.steampowered.com/search/?term='
+
+
+def timet():
+    now = datetime.datetime.now()
+    now_str = now.strftime('%H:%M:%S')
+    return now_str
 
 
 class Game:
@@ -16,37 +23,38 @@ class Game:
     def __init__(self, text):
         self.text = text
 
-    ''' parsing steam store '''
+    ''' PARSING STEAM STORE '''
 
     async def steam_find(self):
         try:
-            steam = 'https://store.steampowered.com/search/?term={}'.format(await validlink(name=self.text))
-            req_link = requests.get(steam, headers={'User-Agent': FUA})
-            codetxt = req_link.text
+            code_txt = await client(text=await validlink(name=self.text), uri=URL_STEAM)
             with open('SteamHTML', 'w', encoding='utf-8') as f:
-                f.write(codetxt)
+                f.write(code_txt)
             local = 'file:///C:/Users/user/AioAsync/SteamHTML'
             respones = urlopen(local)
             treex = etree.parse(respones, HTMLPARCE)
             task = asyncio.create_task(linkers(id=await spliter(await links(name=self.text, tree=treex), game_name=self.text), list_game=await links(name=self.text, tree=treex)))
             res1 = await asyncio.gather(task)
+            print(f'GO STEAM {timet()}')
             return res1[0]
         except IndexError:
             return 'The game is not found, check if you entered the name correctly, or is missing from the store'
 
-    ''' parsing zaka-zaka store '''
+    ''' PARSING ZAKA-ZAKA STORE '''
 
     async def zaka_find(self):
+        print(f'Sleeping {timet()}')
         if isinstance(await validator(text=self.text), str):
             try:
                 zaka = 'https://zaka-zaka.com/game/{}'.format(await validator(text=self.text))
-                code_txt = await test(text=await validator(text=self.text))
+                code_txt = await client(text=await validator(text=self.text), uri=URL_ZAKA)
                 soup = BeautifulSoup(code_txt, 'lxml')
                 old_price = soup.find_all('div', class_='old-price')
                 price_now = soup.find_all('div', class_='price')
                 discount = soup.find_all('div', class_='discount')
                 tasks = asyncio.create_task(price_game(oldprice=old_price, price=price_now, discount=discount, site_url=zaka))
                 res2 = await asyncio.gather(tasks)
+                print(f'GO ZAKA {timet()}')
                 return res2[0] # В данном случае получаем фильтрованные данные
             except IndexError:
                 return """
@@ -57,6 +65,10 @@ Enter the name of the game like this:\nElden Ring, Fallout New Vegas, Rising Sto
 
     async def finally_stand(self, res1, res2):
         pass
+
+
+async def parsing_mod_steam(uri):
+    pass
 
 
 async def price_game(oldprice, price, discount, site_url):
@@ -186,25 +198,31 @@ async def validator(text):
         print('Name of game does exists')
 
 
-async def test(text):
+async def client(text, uri):
     async with aiohttp.ClientSession() as session:
-        async with session.get('https://zaka-zaka.com/game/{}'.format(await validator(text))) as response:
+        async with session.get(f'{uri}{text}', headers={'User-Agent': FUA}) as response:
             html = await response.text()
             return html
 
 
 async def main(text):
+    print(f'Начал в {timet()}')
     gm = Game(text=text)
     res1 = await gm.zaka_find()
+    print(f'Первый Результат {timet()}')
     res2 = await gm.steam_find()
-    return f'Zaka-Zaka Store:\n{res1}\nSteam Store:\n{res2}'
+    print(f'Второй результат {timet()}')
+    return f'Zaka-Zaka Store:\n{res1}\nSteam Store:\n{res2}\n'
+
 
 if __name__ == '__main__':
-    txt_input = 'elden ring'
+    txt_input = 'Rising Storm 2 Vietnam'
     loop = asyncio.get_event_loop()
     tasks = main(txt_input)
     print(loop.run_until_complete(tasks)) # Elden Ring, Rising Storm 2 Vietnam, Fallout 3, Fallout New Vegas
     loop.close()
+
+
 
 
 """
