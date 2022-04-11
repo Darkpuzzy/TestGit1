@@ -255,7 +255,7 @@ async def main(text):
 
 
 if __name__ == '__main__':
-    txt_input = 'Rising Storm 2 Vietnam'
+    txt_input = 'Elden Ring'
     loop = asyncio.get_event_loop()
     tasks = main(txt_input)
     print(loop.run_until_complete(tasks)) # Elden Ring, Rising Storm 2 Vietnam, Fallout 3, Fallout New Vegas
