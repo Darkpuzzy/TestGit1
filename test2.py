@@ -11,6 +11,7 @@ FUA = UserAgent().chrome
 HTMLPARCE = etree.HTMLParser()
 URL_ZAKA = 'https://zaka-zaka.com/game/'
 URL_STEAM = 'https://store.steampowered.com/search/?term='
+price_list = []
 
 
 def timet():
@@ -40,7 +41,6 @@ class Game:
                     list_game=await links(name=self.text, tree=treex)))
             )
             res1 = await asyncio.gather(task)
-            print(f'GO STEAM {timet()}')
             return res1[0]
         except IndexError:
             return 'The game is not found, check if you entered the name correctly, or is missing from the store'
@@ -48,7 +48,6 @@ class Game:
     ''' PARSING ZAKA-ZAKA STORE '''
 
     async def zaka_find(self):
-        print(f'Sleeping {timet()}')
         if isinstance(await validator(text=self.text), str):
             try:
                 zaka = 'https://zaka-zaka.com/game/{}'.format(await validator(text=self.text))
@@ -59,7 +58,6 @@ class Game:
                 discount = soup.find_all('div', class_='discount')
                 tasks = asyncio.create_task(price_game(oldprice=old_price, price=price_now, discount=discount, site_url=zaka))
                 res2 = await asyncio.gather(tasks)
-                print(f'GO ZAKA {timet()}')
                 return res2[0] # В данном случае получаем фильтрованные данные
             except IndexError:
                 return """
@@ -88,22 +86,33 @@ async def parse(uri):
             priceascii = i.text
             p1 = re.search("\d[0-9]\d", str(priceascii))
             list_test.append(p1.group())
-            print('J2')
     else:
         for i in j1:
             priceascii = i.text
             p1 = re.search("\d[0-9]\d", str(priceascii))
             list_test.append(p1.group())
-            print('J1')
-    return list_test
+    final_price = await cheak_price(list_steam=list_test, list_zaka=price_list)
+    if final_price == None:
+        return 'Steam problems'
+    else:
+        return f'Price now {final_price} ₽\n{uri}'
+
+
+async def cheak_price(list_steam, list_zaka):
+    n = 0
+    while n < len(list_steam):
+        for item in list_steam:
+            if item == str(list_zaka[0]):
+                return item
+            else:
+                n+=1
 
 
 async def price_game(oldprice, price, discount, site_url):
-    price_list = []
     if oldprice and discount == []:
         future = [asyncio.ensure_future(find(obj=price[-1], to_append=price_list))]
         await asyncio.wait(future)
-        return f"Old price: -, Discount: -%, Price: {price_list[0]}\n{site_url}"
+        return f"Old price: -, Discount: -%, Price: {price_list[0]} ₽\n{site_url}"
     elif price is []:
         return """
 This game is not in the store,
@@ -118,7 +127,7 @@ Elden Ring, Fallout New Vegas, Rising Storm 2 Vietnam
             asyncio.ensure_future(find(obj=discount[-1], to_append=price_list))
         ]
         await asyncio.wait(futures)
-        return f"Old price: {price_list[0]}, Discount: {price_list[2]}%, Price: {price_list[1]}\n{site_url}"
+        return f"Old price: {price_list[0]} ₽, Discount: {price_list[2]}%, Price: {price_list[1]} ₽\n{site_url}"
 
 
 async def links(name, tree):
@@ -239,12 +248,9 @@ async def client(text, uri):
 
 
 async def main(text):
-    # print(f'Начал в {timet()}')
     gm = Game(text=text)
     res1 = await gm.zaka_find()
-    # print(f'Первый Результат {timet()}')
     res2 = await gm.steam_find()
-    # print(f'Второй результат {timet()}')
     return f'Zaka-Zaka Store:\n{res1}\nSteam Store:\n{res2}\n'
 
 
@@ -253,7 +259,7 @@ if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     tasks = main(txt_input)
     print(loop.run_until_complete(tasks)) # Elden Ring, Rising Storm 2 Vietnam, Fallout 3, Fallout New Vegas
-    loop.close()
+
 
 
 

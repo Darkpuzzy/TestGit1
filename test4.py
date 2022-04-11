@@ -177,3 +177,7 @@ if __name__ == '__main__':
 <div class="discount_pct">-80%</div>
 <div class="discount_prices">
 <div class="discount_original_price">1659 pуб. """
+
+cheak_list = ['100', '200', '300']
+list_cheak = ['300', '500', '600']
+
