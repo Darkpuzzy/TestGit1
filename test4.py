@@ -120,7 +120,7 @@ async def answer():
     html_link = res[0]
     req = requests.get(html_link, headers={'User-Agent': FUA})
     code_txt = req.text
-    soup = BeautifulSoup(code_txt,'lxml')
+    soup = BeautifulSoup(code_txt, 'lxml')
     price = soup.find_all('script', type="text/javascript")
     old_price = soup.find_all('div', class_='game_purchase_price price')
     return html_link
@@ -136,28 +136,28 @@ async def parse():
     local1 = 'file:///C:/Users/user/AioAsync/SteamHTMLparse'
     respones1 = urlopen(local1)
     tree1 = etree.parse(respones1, HTMLPARCE1)
-    j1 = tree1.xpath(f"//div[@class='game_purchase_price price']")
-    j2 = tree1.xpath(f"//div[@class='discount_final_price']")
-    j3 = tree1.xpath(f"//div[@class='discount_block game_purchase_discount']")
+    j1 = tree1.xpath(f"//div[@class='game_area_purchase_game_wrapper']//div[@class='game_purchase_price price']")
+    j2 = tree1.xpath(f"//div[@class='game_area_purchase_game_wrapper']//div[@class='discount_final_price']")
+    j3 = tree1.xpath(f"//div[@class='game_area_purchase_game_wrapper']//div[@class='discount_original_price']")
     list_test = []
     if len(j3) > 0:
         for i in j2:
             priceascii = i.text
             p1 = re.search("\d[0-9]\d", str(priceascii))
             list_test.append(p1.group())
-            # print('J2')
+            print('J2')
     else:
         for i in j1:
             priceascii = i.text
             p1 = re.search("\d[0-9]\d", str(priceascii))
             list_test.append(p1.group())
-            # print('J1')
+            print('J1')
     return list_test
 
 
 
 if __name__ == '__main__':
-    txt_input = 'Elden Ring'
+    txt_input = 'Rising Storm 2'
     loop = asyncio.get_event_loop()
     tasks = loop.create_task(parse())
     res = asyncio.gather(tasks)

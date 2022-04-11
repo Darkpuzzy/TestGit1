@@ -5,6 +5,7 @@ import aiohttp
 from lxml import etree
 from urllib.request import urlopen
 import datetime
+import re
 
 FUA = UserAgent().chrome
 HTMLPARCE = etree.HTMLParser()
@@ -33,7 +34,11 @@ class Game:
             local = 'file:///C:/Users/user/AioAsync/SteamHTML'
             respones = urlopen(local)
             treex = etree.parse(respones, HTMLPARCE)
-            task = asyncio.create_task(linkers(id=await spliter(await links(name=self.text, tree=treex), game_name=self.text), list_game=await links(name=self.text, tree=treex)))
+            task = asyncio.create_task(
+                parse(uri=await linkers(
+                    id=await spliter(await links(name=self.text, tree=treex), game_name=self.text),
+                    list_game=await links(name=self.text, tree=treex)))
+            )
             res1 = await asyncio.gather(task)
             print(f'GO STEAM {timet()}')
             return res1[0]
@@ -67,8 +72,30 @@ Enter the name of the game like this:\nElden Ring, Fallout New Vegas, Rising Sto
         pass
 
 
-async def parsing_mod_steam(uri):
-    pass
+async def parse(uri):
+    req_link1 = await client(text='None', uri=uri)
+    with open('SteamHTMLparse', 'w', encoding='utf-8') as f1:
+        f1.write(req_link1)
+    local1 = 'file:///C:/Users/user/AioAsync/SteamHTMLparse'
+    respones = urlopen(local1)
+    tree1 = etree.parse(respones, HTMLPARCE)
+    j1 = tree1.xpath(f"//div[@class='game_area_purchase_game_wrapper']//div[@class='game_purchase_price price']")
+    j2 = tree1.xpath(f"//div[@class='game_area_purchase_game_wrapper']//div[@class='discount_final_price']")
+    j3 = tree1.xpath(f"//div[@class='game_area_purchase_game_wrapper']//div[@class='discount_original_price']")
+    list_test = []
+    if len(j3) > 0:
+        for i in j2:
+            priceascii = i.text
+            p1 = re.search("\d[0-9]\d", str(priceascii))
+            list_test.append(p1.group())
+            print('J2')
+    else:
+        for i in j1:
+            priceascii = i.text
+            p1 = re.search("\d[0-9]\d", str(priceascii))
+            list_test.append(p1.group())
+            print('J1')
+    return list_test
 
 
 async def price_game(oldprice, price, discount, site_url):
@@ -199,19 +226,25 @@ async def validator(text):
 
 
 async def client(text, uri):
-    async with aiohttp.ClientSession() as session:
-        async with session.get(f'{uri}{text}', headers={'User-Agent': FUA}) as response:
-            html = await response.text()
-            return html
+    if text == 'None':
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f'{uri}', headers={'User-Agent': FUA}) as response:
+                html = await response.text()
+                return html
+    else:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f'{uri}{text}', headers={'User-Agent': FUA}) as response:
+                html = await response.text()
+                return html
 
 
 async def main(text):
-    print(f'Начал в {timet()}')
+    # print(f'Начал в {timet()}')
     gm = Game(text=text)
     res1 = await gm.zaka_find()
-    print(f'Первый Результат {timet()}')
+    # print(f'Первый Результат {timet()}')
     res2 = await gm.steam_find()
-    print(f'Второй результат {timet()}')
+    # print(f'Второй результат {timet()}')
     return f'Zaka-Zaka Store:\n{res1}\nSteam Store:\n{res2}\n'
 
 
